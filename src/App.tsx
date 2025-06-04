@@ -13,6 +13,7 @@ import { Button } from "./components/ui/button";
 import { ActivityHeatmap } from "./components/ui/activity-heatmap";
 import { workoutRoutine } from "./data/workout-config";
 import { format, isSameDay } from "date-fns";
+import { getWorkoutHistory, recordWorkout as apiRecordWorkout } from "./api/workout-history";
 
 const weekdayNames = [
   "Sunday",
@@ -27,30 +28,16 @@ const weekdayNames = [
 function App() {
   const [completedDates, setCompletedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoadingHistory] = useState(false);
 
   // Get today's routine
   const today = new Date();
   const todayIndex = today.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
   const todayRoutineId = `day${todayIndex}`;
 
-  const [activeDay, setActiveDay] = useState(todayRoutineId);
+  const [, setActiveDay] = useState(todayRoutineId);
   const tabsListRef = useRef<HTMLDivElement>(null);
   const initialSelectedTabRef = useRef<HTMLButtonElement>(null);
-
-  // Mock data for demo - in real app this would come from an API
-  useEffect(() => {
-    // Add some sample completed dates for demo
-    const sampleDates = [
-      new Date(2025, 4, 10), // May 10
-      new Date(2025, 4, 12), // May 12
-      new Date(2025, 4, 14), // May 14
-      new Date(2025, 4, 16), // May 16
-      new Date(2025, 4, 19), // May 19
-      new Date(2025, 4, 21), // May 21
-      new Date(2025, 4, 23), // May 23
-    ];
-    setCompletedDates(sampleDates);
-  }, []);
 
   // Scroll to the initial selected tab when component mounts
   useEffect(() => {
@@ -74,19 +61,52 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    async function fetchWorkoutHistory() {
+      try {
+        setIsLoadingHistory(true);
+        const userId = "user-1"; // In a real app, this would be the logged-in user's ID
+        
+        const data = await getWorkoutHistory(userId);
+        
+        // Convert string dates to Date objects in local timezone
+        const dates = data.dates.map((dateStr: string) => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return new Date(year, month - 1, day); // month is 0-indexed
+        });
+        setCompletedDates(dates);
+      } catch (error) {
+        console.error("Error fetching workout history:", error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    }
+    
+    fetchWorkoutHistory();
+  }, []);
+
   // Function to record a completed workout
-  function recordWorkout() {
+  async function recordWorkout() {
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const userId = "user-1"; // In a real app, this would be the logged-in user's ID
       const today = new Date();
+      const dateStr = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      
+      await apiRecordWorkout(userId, dateStr);
+      
+      // Update local state
       setCompletedDates([...completedDates, today]);
-      setIsLoading(false);
-
+      
       // Show success message (in real app you'd use a toast library)
       alert(`Workout recorded for ${format(today, "PP")}`);
-    }, 1000);
+    } catch (error) {
+      console.error("Error recording workout:", error);
+      alert("Failed to record workout. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const alreadyCompletedToday = completedDates.some((date) =>

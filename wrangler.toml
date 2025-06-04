@@ -1,4 +1,4 @@
-name = "train-rburdet-com"
+name = "gym"
 pages_build_output_dir = "./dist"
 
 [env.production]

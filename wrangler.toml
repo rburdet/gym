@@ -1,12 +1,10 @@
 name = "gym"
-pages_build_output_dir = "./dist"
+compatibility_date = "2025-04-01"
 
-[env.production]
-compatibility_date = "2024-01-01"
+[assets]
+directory = "./dist/"
+
 
 [[env.production.kv_namespaces]]
 binding = "WORKOUT_DATA"
 id = "192278a040b446db9421c980da5f8997"
-
-[env.development]
-compatibility_date = "2024-01-01"

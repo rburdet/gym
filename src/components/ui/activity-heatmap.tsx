@@ -21,6 +21,7 @@ export function ActivityHeatmap({ dates, className }: ActivityHeatmapProps) {
   // Show Sun, Tue, Thu, Sat
   const selectedDays = [0, 1, 2, 3, 4, 5, 6];
   const daysToShow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  console.log(dates);
 
   // Generate week start dates (columns) starting from January 1st of the current year
   const currentYear = new Date().getFullYear();
@@ -91,6 +92,7 @@ export function ActivityHeatmap({ dates, className }: ActivityHeatmapProps) {
                     isSameDay(date, cellDate)
                   ).length;
                   const intensity = count > 0 ? Math.min(count, 4) : 0;
+
                   return (
                     <td key={colIndex} className="p-0">
                       <div
